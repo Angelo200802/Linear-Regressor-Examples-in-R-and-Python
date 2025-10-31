@@ -99,7 +99,8 @@ Residuals:
 Coefficients:
             Estimate Std. Error t value Pr(>|t|)    
 (Intercept)  1192.94    1664.80   0.717    0.474    
-x1            393.87      53.25   7.397 2.46e-13 ***
+x1            393.87      53.25   7.397 2.46e-13 \*\*\*
+
 ---
 
 Residual standard error: 11870 on 1336 degrees of freedom
@@ -107,7 +108,7 @@ Multiple R-squared:  0.03934,   Adjusted R-squared:  0.03862
 F-statistic: 54.71 on 1 and 1336 DF,  p-value: 2.459e-13
 
 
-*La varianza spiegata dal modello è solo del 3.93, è dunque un modello debole.*
+*La varianza spiegata dal modello è solo del 3.93%, è dunque un modello debole.*
 
 *Per ogni aumento di 1 unità di BMI, le charges aumentano in media di ~394 dollari*
 
