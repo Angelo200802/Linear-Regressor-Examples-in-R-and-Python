@@ -29,9 +29,10 @@ print("### Correlation index between Variables")
 print(ro.r('cor(W)'))
 
 ro.r('''
-    dev.new()
-    png("scatter_bmi_charges.png", width=800, height=600)
+    png("m1_scatter_plot.png", width=800, height=600)
     plot(data[,c(3,7)],main="Scatter plot of BMI vs Charges")
+    abline(lm(y ~ x1), col="red")
+    title("Regression Line: Charges vs BMI")
     dev.off()
      ''')
 
@@ -39,3 +40,9 @@ model1 = ro.r('lm(y ~ x1)')
 ro.globalenv['model1'] = model1
 print("### Summary of Linear Model M1")
 print(ro.r('summary(model1)'))
+
+print("### Residuals Analysis")
+ro.r('''
+     png("m1_residuals.png", width=800, height=600)
+     hist(resid(model1), main="Histogram of Residuals for Model M1", xlab="Residuals")
+     dev.off()''')
