@@ -3,7 +3,7 @@ import rpy2.robjects as ro
 print(ro.r('R.version.string'))
 
 #Read data from a CSV file using R
-data = ro.r('read.csv("insurance.csv",header=TRUE)')
+data = ro.r('read.csv("/home/angelo/Project/uni/MS_SL/ms_sl_ws/Insurance/insurance.csv",header=TRUE)')
 
 #Select variables BMI and charges
 x1 = data.rx2('bmi')
