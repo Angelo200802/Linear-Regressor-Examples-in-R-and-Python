@@ -1,2 +1,4 @@
 rpy2
 dotenv
+pandas
+openpyxl
