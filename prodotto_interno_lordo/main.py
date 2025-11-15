@@ -40,8 +40,8 @@ ts_pil
 
     r.globalenv['ts_pil'] = df
 
-    r.r('''
-        png("serie_trimestrale.png", width=800, height=600)
+    r.r(f'''
+        png("{PATH}/serie_trimestrale.png", width=800, height=600)
         plot(ts_pil, main="Serie Trimestrale del Prodotto Interno Lordo", ylab="PIL", xlab="Anno", col="blue")
         dev.off()
     ''')
@@ -52,6 +52,19 @@ ts_pil
         summary(m)
     ''')
 
+    m_dummy = r.r('''
+        t <- 1:length(ts_pil) #1-118
+        time_points <- time(ts_pil)
+        
+        dummy_08 <- ifelse(time_points >= 2008.00, 1, 0)
+        dummy_20 <- ifelse(time_points >= 2020.00, 1, 0)
+                  
+        m <- lm(ts_pil ~ poly(t,3,raw=TRUE) + dummy_08 + dummy_20)
+        summary(m)
+    ''')
+
     print("DATASET:\n", df)
 
-    print("Summary of Linear Model M:\n",m)
+    print("Summary of Linear Model M (no break):\n",m)
+
+    print("Summary of Linear Model M (with breaks):\n",m_dummy)
