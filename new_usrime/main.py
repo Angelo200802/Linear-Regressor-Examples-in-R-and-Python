@@ -3,18 +3,53 @@ import os,pandas as pd
 import rpy2.robjects as r
 from rpy2.robjects import pandas2ri
 import rpy2.robjects.packages as rpackages
-from rpy2.robjects.vectors import StrVector
+#from rpy2.robjects.vectors import StrVector
+from rpy2.rinterface_lib.embedded import RRuntimeError
 
-def install_packages(package_names):
+def install_packages(pckg_names):
     """Install R packages if they are not already installed."""
-    utils = rpackages.importr('utils')
-    utils.chooseCRANmirror(ind=1)  # Select the first CRAN mirror
-    for package in package_names:
-        if not rpackages.isinstalled(package):
-            utils.install_packages(StrVector([package]))
-            print(f"📦 Pacchetto '{package}' installato con successo!")
+    
+    r.r('''
+        options(repos = c(CRAN = "https://cloud.r-project.org"))
+    ''')
+    
+    for pckg in pckg_names:
+        if not rpackages.isinstalled(pckg):
+            print(f"📦 Installazione di '{pckg}' in corso...")
+            
+            try:
+                # Installa con dipendenze
+                result = r.r(f'''
+                    tryCatch({{
+                        install.packages("{pckg}", dependencies = TRUE, quiet = FALSE)
+                        if (require("{pckg}", character.only = TRUE, quietly = TRUE)) {{
+                            cat("SUCCESS\n")
+                            TRUE
+                        }} else {{
+                            cat("FAILED\n")
+                            FALSE
+                        }}
+                    }}, error = function(e) {{
+                        cat("ERROR:", conditionMessage(e), "\n")
+                        FALSE
+                    }})
+                ''')
+                
+                # Controlla il risultato
+                if result[0]:  # TRUE
+                    print(f"✅ Pacchetto '{pckg}' installato con successo!")
+                else:
+                    print(f"❌ ERRORE: '{pckg}' NON è stato installato!")
+                    
+            except RRuntimeError as e:
+                print(f"❌ ERRORE Python durante l'installazione di '{pckg}':")
+                print(f"   {e}")
+                
         else:
-            print(f"✅ Il pacchetto '{package}' è già installato in R.")
+            print(f"✅ Il pacchetto '{pckg}' è già installato.")
+            
+        # Verifica finale
+        print(f"   Verifica finale: {rpackages.isinstalled(pckg)}")
 
 if __name__ == "__main__":
     load_dotenv()
@@ -28,7 +63,7 @@ if __name__ == "__main__":
     else: 
         DATASET_PATH = PATH+"/"+DATASET_NAME
 
-    install_packages(['DAAG', 'car'])
+    install_packages(["DAAG","olsrr","car"])
 
     ds = r.r(f'''
     df <- read.table(file="{DATASET_PATH}", header=TRUE, sep="\t", dec=",")
@@ -80,6 +115,21 @@ if __name__ == "__main__":
         )
         dev.off()''')
 
+
+    m_fors = r.r(f''' 
+        library(olsrr)
+
+        model_full <- lm(Crime ~ ., data=ds)
+        m_fors <- ols_step_backward_p(model_full)
+        
+        selected_vars <- m_fors$predictors
+        formula_final <- as.formula(paste("Crime ~ .", paste(selected_vars, collapse=" + ")))
+
+        model_final <- lm(formula_final, data=ds)
+        summary(model_final)
+    ''')
+
+    print(f"Forward Selection Model Summary:\n{m_fors}")
 
     
     
