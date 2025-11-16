@@ -10,6 +10,6 @@ if __name__ == "__main__":
     if PATH is None:
         print("DATASET_PATH is not set in the environment variables.")
         print("Using local path...")
-        DATASET_PATH = DATASET_NAME
+        DATASET_PATH = "./"+DATASET_NAME
     else: 
         DATASET_PATH = PATH+"/"+DATASET_NAME

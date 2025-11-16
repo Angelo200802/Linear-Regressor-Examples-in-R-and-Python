@@ -63,20 +63,33 @@ ts_pil
     pil <- cbind(xx,ts_pil,d1,d2,d3,d4)
     pil
 """)
-    
-    print("PIL DATASET:\n", pil)
 
-    m = r.r('''
+    m = r.r(f'''
         t <- seq(1, length(ts_pil),1) 
         d1 <- ifelse(xx == 1, 1, 0)
         d2 <- ifelse(xx == 2, 1, 0)
         d3 <- ifelse(xx == 3, 1, 0)
         d4 <- ifelse(xx == 4, 1, 0) 
         m <- lm(ts_pil ~ d1+d2+d3+d4+poly(t,3,raw=TRUE)-1)
+            
+        png("{PATH}/time_series_comparison_no_break.png", width=1200, height=600)
+        fitted_ts <- ts(fitted(m), start=start(ts_pil), frequency=frequency(ts_pil))
+        ts.plot(fitted_ts, ts_pil, gpars=list(col=c(2,3)), main="Observed vs Fitted Values (no break)")
+        
+        legend("topleft", 
+            legend=c("Fitted", "Observed"), 
+            col=c("red", "green"), 
+            lty=c(2, 1), 
+            lwd=2)
+
+        png("{PATH}/m_residuals.png", width=800, height=600)
+        hist(resid(m), main="Histogram of Residuals for Model without break", xlab="Residuals")
+        
+        dev.off()
         summary(m)
     ''')
     
-    m_dummy = r.r('''
+    m_dummy = r.r(f'''
         t <- 1:length(ts_pil) #1-118
         time_points <- time(ts_pil)
         
@@ -87,36 +100,51 @@ ts_pil
         dummy_08 <- ifelse(time_points >= 2008.00, 1, 0)
         dummy_20 <- ifelse(time_points >= 2020.00, 1, 0)
                   
-        m <- lm(ts_pil ~ poly(t,3,raw=TRUE) + dummy_08 + dummy_20)
-                  
         model_full <- lm(ts_pil ~ d1+d2+d3+d4+poly(t, 1, raw = TRUE) + dummy_08 + dummy_20 + dummy_08:t + dummy_20:t -1)
+        
+        png("{PATH}/time_series_comparison.png", width=1200, height=600)
+        fitted_ts <- ts(fitted(model_full), start=start(ts_pil), frequency=frequency(ts_pil))
+        ts.plot(fitted_ts, ts_pil, gpars=list(col=c(2,3)), main="Observed vs Fitted Values")
+        
+        legend("topleft", 
+            legend=c("Fitted", "Observed"), 
+            col=c("red", "green"), 
+            lty=c(2, 1), 
+            lwd=2)
+
+        png("{PATH}/m_full_residuals.png", width=800, height=600)
+        hist(resid(model_full), main="Histogram of Residuals for Model with break", xlab="Residuals")
+
+        dev.off()
         summary(model_full)
     ''')
 
-    m_tratto_1= r.r('''
-        periodo1 <- window(ts_pil, end = c(2007, 4))    # 1996-2007
-        t1 <- 1:length(periodo1)
-        model1 <- lm(periodo1 ~ poly(t1, 1, raw = TRUE))
-        summary(model1)
-    ''')
+    r.globalenv['model_full'] = m_dummy
 
-    m_tratto_2 = r.r(
-        '''
-        periodo2 <- window(ts_pil, start = c(2008, 1), end = c(2019, 4))  # 2008-2019
-        t2 <- 1:length(periodo2)
-        model2 <- lm(periodo2 ~ 1)
-        summary(model2)   
-        '''
-    )
+    #m_tratto_1= r.r('''
+    #    periodo1 <- window(ts_pil, end = c(2007, 4))    # 1996-2007
+    #    t1 <- 1:length(periodo1)
+    #    model1 <- lm(periodo1 ~ poly(t1, 1, raw = TRUE))
+    #    summary(model1)
+    #''')
 
-    m_tratto_3 = r.r(
-        '''
-        periodo3 <- window(ts_pil, start = c(2020, 1))  # 2020-oggi
-        t3 <- 1:length(periodo3)
-        model3 <- lm(periodo3 ~ poly(t3, 2, raw = TRUE))  # Meno dati, polinomio più basso
-        summary(model3)
-        '''
-    )
+    #m_tratto_2 = r.r(
+    #    '''
+    #    periodo2 <- window(ts_pil, start = c(2008, 1), end = c(2019, 4))  # 2008-2019
+    #    t2 <- 1:length(periodo2)
+    #    model2 <- lm(periodo2 ~ 1)
+    #    summary(model2)   
+    #    '''
+    #)
+
+    #m_tratto_3 = r.r(
+    #    '''
+    #    periodo3 <- window(ts_pil, start = c(2020, 1))  # 2020-oggi
+    #    t3 <- 1:length(periodo3)
+    #    model3 <- lm(periodo3 ~ poly(t3, 2, raw = TRUE))  # Meno dati, polinomio più basso
+    #    summary(model3)
+    #    '''
+    #)
 
     print("DATASET:\n", df)
 
@@ -124,6 +152,6 @@ ts_pil
 
     print("Summary of Linear Model M (with breaks):\n",m_dummy)
 
-    print("Summary of Linear Model for Segment 1 (1996-2007):\n",m_tratto_1)
-    print("Summary of Linear Model for Segment 2 (2008-2019):\n",m_tratto_2)
-    print("Summary of Linear Model for Segment 3 (2020-present):\n",m_tratto_3)
+    #print("Summary of Linear Model for Segment 1 (1996-2007):\n",m_tratto_1)
+    #print("Summary of Linear Model for Segment 2 (2008-2019):\n",m_tratto_2)
+    #print("Summary of Linear Model for Segment 3 (2020-present):\n",m_tratto_3)
