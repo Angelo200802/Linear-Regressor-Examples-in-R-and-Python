@@ -82,9 +82,14 @@ ts_pil
             lty=c(2, 1), 
             lwd=2)
 
+        residuals <- resid(m)
+
         png("{PATH}/m_residuals.png", width=800, height=600)
-        hist(resid(m), main="Histogram of Residuals for Model without break", xlab="Residuals")
+        hist(residuals, main="Histogram of Residuals for Model without break", xlab="Residuals")
         
+        png("{PATH}/m_qqplot.png", width=800, height=600)
+        qqnorm(residuals); qqline(residuals)
+
         dev.off()
         summary(m)
     ''')
@@ -112,9 +117,14 @@ ts_pil
             lty=c(2, 1), 
             lwd=2)
 
+        residuals <- resid(model_full)
+            
         png("{PATH}/m_full_residuals.png", width=800, height=600)
-        hist(resid(model_full), main="Histogram of Residuals for Model with break", xlab="Residuals")
+        hist(residuals, main="Histogram of Residuals for Model with break", xlab="Residuals")
+        curve(dnorm(x),add=T)
 
+        png("{PATH}/m_full_qqplot.png", width=800, height=600)
+        qqnorm(residuals); qqline(residuals)
         dev.off()
         summary(model_full)
     ''')
