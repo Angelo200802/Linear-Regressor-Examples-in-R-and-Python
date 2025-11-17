@@ -72,7 +72,7 @@ ts_pil
         fitted_trend <- fitted(m_trend)
         ts.plot(fitted_trend, ts_pil, gpars=list(col=c(2,3)), main="Observed vs Fitted Values (Trend Only)")
         dev.off()
-        summary(m_trend)
+        m_trend
     ''')
 
     m = r.r(f'''
@@ -102,7 +102,7 @@ ts_pil
         qqnorm(residuals); qqline(residuals)
 
         dev.off()
-        summary(m)
+        m
     ''')
     
     m_dummy = r.r(f'''
@@ -137,15 +137,26 @@ ts_pil
         png("{PATH}/img/m_full_qqplot.png", width=800, height=600)
         qqnorm(residuals); qqline(residuals)
         dev.off()
-        summary(model_full)
+        
+        model_full
     ''')
 
     r.globalenv['model_full'] = m_dummy
+    r.globalenv['model_no_break'] = m
+    r.globalenv['model_trend'] = m_trend
 
     print("DATASET:\n", df)
 
-    print("Summary of Linear Model M_trend:\n",m_trend)
+    print("Summary of Linear Model M_trend:\n",r.r('summary(model_trend)'))
 
-    print("Summary of Linear Model M (no break):\n",m)
+    print("Summary of Linear Model M (no break):\n",r.r('summary(model_no_break)'))
 
-    print("Summary of Linear Model M (with breaks):\n",m_dummy)
+    print("Summary of Linear Model M (with breaks):\n",r.r('summary(model_full)'))  
+
+    print("AIC of M_trend:", r.r('AIC(model_trend)'))
+    print("AIC of M (no break):", r.r('AIC(model_no_break)'))
+    print("AIC of M (with breaks):", r.r('AIC(model_full)'))
+    print("BIC of M_trend:", r.r('BIC(model_trend)'))
+    print("BIC of M (no break):", r.r('BIC(model_no_break)'))
+    print("BIC of M (with breaks):", r.r('BIC(model_full)'))    
+    print("Anova: ", r.r('anova(model_no_break, model_full)'))
