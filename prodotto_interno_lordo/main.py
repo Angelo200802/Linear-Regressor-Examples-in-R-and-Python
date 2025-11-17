@@ -41,7 +41,7 @@ ts_pil
     r.globalenv['ts_pil'] = df
 
     r.r(f'''
-        png("{PATH}/serie_trimestrale.png", width=800, height=600)
+        png("{PATH}/img/serie_trimestrale.png", width=800, height=600)
         plot(ts_pil, main="Serie Trimestrale del Prodotto Interno Lordo", ylab="PIL", xlab="Anno", col="blue")
         dev.off()
     ''')
@@ -72,7 +72,7 @@ ts_pil
         d4 <- ifelse(xx == 4, 1, 0) 
         m <- lm(ts_pil ~ d1+d2+d3+d4+poly(t,3,raw=TRUE)-1)
             
-        png("{PATH}/time_series_comparison_no_break.png", width=1200, height=600)
+        png("{PATH}/img/time_series_comparison_no_break.png", width=1200, height=600)
         fitted_ts <- ts(fitted(m), start=start(ts_pil), frequency=frequency(ts_pil))
         ts.plot(fitted_ts, ts_pil, gpars=list(col=c(2,3)), main="Observed vs Fitted Values (no break)")
         
@@ -84,7 +84,7 @@ ts_pil
 
         residuals <- resid(m)
 
-        png("{PATH}/m_residuals.png", width=800, height=600)
+        png("{PATH}/img/m_residuals.png", width=800, height=600)
         hist(residuals, main="Histogram of Residuals for Model without break", xlab="Residuals")
         
         png("{PATH}/m_qqplot.png", width=800, height=600)
@@ -107,7 +107,7 @@ ts_pil
                   
         model_full <- lm(ts_pil ~ d1+d2+d3+d4+poly(t, 1, raw = TRUE) + dummy_08 + dummy_20 + dummy_08:t + dummy_20:t -1)
         
-        png("{PATH}/time_series_comparison.png", width=1200, height=600)
+        png("{PATH}/img/time_series_comparison.png", width=1200, height=600)
         fitted_ts <- ts(fitted(model_full), start=start(ts_pil), frequency=frequency(ts_pil))
         ts.plot(fitted_ts, ts_pil, gpars=list(col=c(2,3)), main="Observed vs Fitted Values")
         
@@ -119,7 +119,7 @@ ts_pil
 
         residuals <- resid(model_full)
             
-        png("{PATH}/m_full_residuals.png", width=800, height=600)
+        png("{PATH}/img/m_full_residuals.png", width=800, height=600)
         hist(residuals, main="Histogram of Residuals for Model with break", xlab="Residuals")
         curve(dnorm(x),add=T)
 
@@ -131,37 +131,8 @@ ts_pil
 
     r.globalenv['model_full'] = m_dummy
 
-    #m_tratto_1= r.r('''
-    #    periodo1 <- window(ts_pil, end = c(2007, 4))    # 1996-2007
-    #    t1 <- 1:length(periodo1)
-    #    model1 <- lm(periodo1 ~ poly(t1, 1, raw = TRUE))
-    #    summary(model1)
-    #''')
-
-    #m_tratto_2 = r.r(
-    #    '''
-    #    periodo2 <- window(ts_pil, start = c(2008, 1), end = c(2019, 4))  # 2008-2019
-    #    t2 <- 1:length(periodo2)
-    #    model2 <- lm(periodo2 ~ 1)
-    #    summary(model2)   
-    #    '''
-    #)
-
-    #m_tratto_3 = r.r(
-    #    '''
-    #    periodo3 <- window(ts_pil, start = c(2020, 1))  # 2020-oggi
-    #    t3 <- 1:length(periodo3)
-    #    model3 <- lm(periodo3 ~ poly(t3, 2, raw = TRUE))  # Meno dati, polinomio più basso
-    #    summary(model3)
-    #    '''
-    #)
-
     print("DATASET:\n", df)
 
     print("Summary of Linear Model M (no break):\n",m)
 
     print("Summary of Linear Model M (with breaks):\n",m_dummy)
-
-    #print("Summary of Linear Model for Segment 1 (1996-2007):\n",m_tratto_1)
-    #print("Summary of Linear Model for Segment 2 (2008-2019):\n",m_tratto_2)
-    #print("Summary of Linear Model for Segment 3 (2020-present):\n",m_tratto_3)
