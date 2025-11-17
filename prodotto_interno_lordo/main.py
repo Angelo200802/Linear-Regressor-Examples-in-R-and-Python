@@ -63,6 +63,17 @@ ts_pil
     pil <- cbind(xx,ts_pil,d1,d2,d3,d4)
     pil
 """)
+    
+    m_trend = r.r(f''' 
+        t <- seq(1, length(ts_pil),1)
+        m_trend <- lm(ts_pil ~ poly(t, 3, raw=TRUE))
+                  
+        png("{PATH}/img/m_trend.png", width=800, height=600)
+        fitted_trend <- fitted(m_trend)
+        ts.plot(fitted_trend, ts_pil, gpars=list(col=c(2,3)), main="Observed vs Fitted Values (Trend Only)")
+        dev.off()
+        summary(m_trend)
+    ''')
 
     m = r.r(f'''
         t <- seq(1, length(ts_pil),1) 
@@ -87,7 +98,7 @@ ts_pil
         png("{PATH}/img/m_residuals.png", width=800, height=600)
         hist(residuals, main="Histogram of Residuals for Model without break", xlab="Residuals")
         
-        png("{PATH}/m_qqplot.png", width=800, height=600)
+        png("{PATH}/img/m_qqplot.png", width=800, height=600)
         qqnorm(residuals); qqline(residuals)
 
         dev.off()
@@ -105,7 +116,7 @@ ts_pil
         dummy_08 <- ifelse(time_points >= 2008.00, 1, 0)
         dummy_20 <- ifelse(time_points >= 2020.00, 1, 0)
                   
-        model_full <- lm(ts_pil ~ d1+d2+d3+d4+poly(t, 1, raw = TRUE) + dummy_08 + dummy_20 + dummy_08:t + dummy_20:t -1)
+        model_full <- lm(ts_pil ~ d1+d2+d3+d4+poly(t, 3, raw = TRUE) + dummy_08+ dummy_08:t + dummy_20 -1)
         
         png("{PATH}/img/time_series_comparison.png", width=1200, height=600)
         fitted_ts <- ts(fitted(model_full), start=start(ts_pil), frequency=frequency(ts_pil))
@@ -123,7 +134,7 @@ ts_pil
         hist(residuals, main="Histogram of Residuals for Model with break", xlab="Residuals")
         curve(dnorm(x),add=T)
 
-        png("{PATH}/m_full_qqplot.png", width=800, height=600)
+        png("{PATH}/img/m_full_qqplot.png", width=800, height=600)
         qqnorm(residuals); qqline(residuals)
         dev.off()
         summary(model_full)
@@ -132,6 +143,8 @@ ts_pil
     r.globalenv['model_full'] = m_dummy
 
     print("DATASET:\n", df)
+
+    print("Summary of Linear Model M_trend:\n",m_trend)
 
     print("Summary of Linear Model M (no break):\n",m)
 
