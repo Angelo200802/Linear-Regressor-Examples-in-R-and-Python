@@ -88,7 +88,7 @@ if __name__ == "__main__":
 
     print(f"Matrix W:\n{W}")  
 
-    r.r(f'png("{PATH}/histograms_crime.png", width=800, height=600); hist(Crime, main="Histogram of Crime", xlab="Crime"); dev.off()')
+    r.r(f'png("{PATH}/img/histograms_crime.png", width=800, height=600); hist(Crime, main="Histogram of Crime", xlab="Crime"); dev.off()')
 
     print("Variance and CoVariance Matrix:\n",
           r.r('''
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     r.r(f'''
         library(DAAG)
         library(car)
-        png("{PATH}/scatterplot_matrix_crime.png", width=800, height=600)
+        png("{PATH}/img/scatterplot_matrix_crime.png", width=800, height=600)
         scatterplotMatrix(~{"+".join(ds.columns.tolist())}, col="black",
             pch=20, regLine = list(method=lm, lty=1, lwd=2, col="chartreuse3"),
             smooth=FALSE,
@@ -129,7 +129,14 @@ if __name__ == "__main__":
         summary(model_final)
     ''')
 
-    print(f"Forward Selection Model Summary:\n{m_fors}")
+    m = r.r(
+        f'''
+            model_full <- lm(Crime ~ M + Po2 + LF + U2, data=ds)
+            summary(model_full)
+        '''
+    )
+
+    print(f"Forward Selection Model Summary:\n{m}")
 
     
     
