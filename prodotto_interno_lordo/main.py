@@ -158,5 +158,4 @@ ts_pil
     print("AIC of M (with breaks):", r.r('AIC(model_full)'))
     print("BIC of M_trend:", r.r('BIC(model_trend)'))
     print("BIC of M (no break):", r.r('BIC(model_no_break)'))
-    print("BIC of M (with breaks):", r.r('BIC(model_full)'))    
-    print("Anova: ", r.r('anova(model_no_break, model_full)'))
+    print("BIC of M (with breaks):", r.r('BIC(model_full)')) 

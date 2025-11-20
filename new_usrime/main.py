@@ -5,6 +5,7 @@ from rpy2.robjects import pandas2ri
 import rpy2.robjects.packages as rpackages
 #from rpy2.robjects.vectors import StrVector
 from rpy2.rinterface_lib.embedded import RRuntimeError
+import numpy as np
 
 def install_packages(pckg_names):
     """Install R packages if they are not already installed."""
@@ -73,6 +74,7 @@ if __name__ == "__main__":
 
     ds : pd.DataFrame = pandas2ri.rpy2py(ds)
 
+
     print(f"Dataset:\n{ds}")
     for col,i in zip(ds.columns, range(1,len(ds.columns)+1)):
         c = r.r(f'''
@@ -129,14 +131,18 @@ if __name__ == "__main__":
         summary(model_final)
     ''')
 
+    r.r(f'''
+        png("{PATH}/img/crime_po2.png", width=800, height=600)
+        plot(ds$U2, ds$Crime, main="Crime vs Po2", xlab="Po2", ylab="Crime", pch=19, col="red")
+        dev.off()
+        ''')
+
     m = r.r(
         f'''
-            model_full <- lm(Crime ~ M + Po2 + LF + U2, data=ds)
-            summary(model_full)
+            library(car)
+            model_final <- lm(Crime ~ U2 + M + Po2 + LF , data = ds)
         '''
     )
-
-    print(f"Forward Selection Model Summary:\n{m}")
-
+   
     
     
