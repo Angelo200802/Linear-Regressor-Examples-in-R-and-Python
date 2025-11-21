@@ -116,7 +116,7 @@ ts_pil
         dummy_08 <- ifelse(time_points >= 2008.00, 1, 0)
         dummy_20 <- ifelse(time_points >= 2020.00, 1, 0)
                   
-        model_full <- lm(ts_pil ~ d1+d2+d3+d4+poly(t, 3, raw = TRUE) + dummy_08+ dummy_08:t + dummy_20 -1)
+        model_full <- lm(ts_pil ~ d1+d2+d3+d4+poly(t, 3, raw = TRUE) + dummy_08 + dummy_20 -1)
         
         png("{PATH}/img/time_series_comparison.png", width=1200, height=600)
         fitted_ts <- ts(fitted(model_full), start=start(ts_pil), frequency=frequency(ts_pil))

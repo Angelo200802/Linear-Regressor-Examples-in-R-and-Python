@@ -7,6 +7,9 @@ import rpy2.robjects.packages as rpackages
 from rpy2.rinterface_lib.embedded import RRuntimeError
 import numpy as np
 
+def r_j0(vif_j):
+    return {f"Rj0^2_{i}": (1 - 1/vif) for i,vif in zip(vif_j.names,vif_j)}
+
 def install_packages(pckg_names):
     """Install R packages if they are not already installed."""
     
@@ -117,32 +120,64 @@ if __name__ == "__main__":
         )
         dev.off()''')
 
-
-    m_fors = r.r(f''' 
-        library(olsrr)
-
-        model_full <- lm(Crime ~ ., data=ds)
-        m_fors <- ols_step_backward_p(model_full)
-        
-        selected_vars <- m_fors$predictors
-        formula_final <- as.formula(paste("Crime ~ .", paste(selected_vars, collapse=" + ")))
-
-        model_final <- lm(formula_final, data=ds)
-        summary(model_final)
-    ''')
-
-    r.r(f'''
-        png("{PATH}/img/crime_po2.png", width=800, height=600)
-        plot(ds$U2, ds$Crime, main="Crime vs Po2", xlab="Po2", ylab="Crime", pch=19, col="red")
-        dev.off()
-        ''')
-
     m = r.r(
         f'''
-            library(car)
             model_final <- lm(Crime ~ U2 + M + Po2 + LF , data = ds)
+
+            residuals <- resid(model_final)
+            png("{PATH}/img/m_residuals.png", width=800, height=600)
+            hist(residuals, main="Histogram of Residuals for Model with break", xlab="Residuals")
+            curve(dnorm(x),add=T)
+
+            png("{PATH}/img/m_qqplot.png", width=800, height=600)
+            qqnorm(residuals); qqline(residuals)
+            dev.off()
+
+            model_final
         '''
     )
-   
+
+    m_complete = r.r(
+        f'''
+            model_complete <- lm(Crime ~ ., data = ds)
+            
+            residuals <- resid(model_complete)
+            png("{PATH}/img/m_full_residuals.png", width=800, height=600)
+            hist(residuals, main="Histogram of Residuals for Model with break", xlab="Residuals")
+            curve(dnorm(x),add=T)
+
+            png("{PATH}/img/m_full_qqplot.png", width=800, height=600)
+            qqnorm(residuals); qqline(residuals)
+            dev.off()
+
+            model_complete
+        '''
+    )
+
+    det_complete = r.r(''' 
+        X <- model.matrix(model_complete)
+        det(t(X) %*% X)
+    ''')
+
+    det = r.r('''  
+        X <- model.matrix(model_final)
+        det(t(X) %*% X)
+    ''')
+
+
+
+    print("Summary of Complete Linear Model:\n",r.r('summary(model_complete)'))
+    print("VIF Values for Complete Model:\n",r.r('car::vif(model_complete)'))
+    print("Condition Number for Complete Model:\n",r.r('kappa(model.matrix(model_complete))'))
+    print("Determinant of X'X for Complete Model:", det_complete)
+    print("Rj0 values for Complete Model:\n", r_j0(r.r('car::vif(model_complete)')))
+    print("---------------------------------------------------")
+
+    print("Summary of Linear Model:\n",r.r('summary(model_final)'))
+    print("VIF Values:\n",r.r('car::vif(model_final)'))
+    print("Condition Number:\n",r.r('kappa(model.matrix(model_final))'))
+    print("Determinant of X'X:", det)
+    print("Rj0 values:\n", r_j0(r.r('car::vif(model_final)')))
+    print("---------------------------------------------------")
     
     
