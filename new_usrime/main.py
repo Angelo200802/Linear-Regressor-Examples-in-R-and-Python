@@ -55,19 +55,13 @@ def install_packages(pckg_names):
         # Verifica finale
         print(f"   Verifica finale: {rpackages.isinstalled(pckg)}")
 
-if __name__ == "__main__":
-    load_dotenv()
-    PATH = os.getenv("DATASET_PATH")
-    DATASET_NAME = "4_New_uscrime_2.txt"
-
-    if PATH is None:
+def load_dataset(PATH, DATASET_NAME) -> pd.DataFrame:
+    if not PATH or not DATASET_NAME:
         print("DATASET_PATH is not set in the environment variables.")
         print("Using local path...")
         DATASET_PATH = "./"+DATASET_NAME
     else: 
         DATASET_PATH = PATH+"/"+DATASET_NAME
-
-    install_packages(["DAAG","olsrr","car"])
 
     ds = r.r(f'''
     df <- read.table(file="{DATASET_PATH}", header=TRUE, sep="\t", dec=",")
@@ -77,6 +71,15 @@ if __name__ == "__main__":
 
     ds : pd.DataFrame = pandas2ri.rpy2py(ds)
 
+    return ds
+
+if __name__ == "__main__":
+    load_dotenv()
+    PATH = os.getenv("DATASET_PATH")
+    DATASET_NAME = "4_New_uscrime_2.txt"
+
+    ds = load_dataset(PATH,DATASET_NAME)
+    install_packages(["DAAG","olsrr","car"])
 
     print(f"Dataset:\n{ds}")
     for col,i in zip(ds.columns, range(1,len(ds.columns)+1)):
@@ -137,6 +140,14 @@ if __name__ == "__main__":
         '''
     )
 
+    residuals = r.r(f'''
+        model <- lm(Crime ~ ., data=ds)
+        res <- resid(model)
+        png("{PATH}/img/res_plot.png", width=800, height=600)
+        plot(residuals, main="Residuals Plot", xlab="Residuals")
+        dev.off()                
+    ''')
+
     m_complete = r.r(
         f'''
             model_complete <- lm(Crime ~ ., data = ds)
@@ -178,6 +189,4 @@ if __name__ == "__main__":
     print("Condition Number:\n",r.r('kappa(model.matrix(model_final))'))
     print("Determinant of X'X:", det)
     print("Rj0 values:\n", r_j0(r.r('car::vif(model_final)')))
-    print("---------------------------------------------------")
-    
     
