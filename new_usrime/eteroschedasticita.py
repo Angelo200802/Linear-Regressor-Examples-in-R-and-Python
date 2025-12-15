@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import os
 import rpy2.robjects as r
-from main import load_dataset, install_packages
+from main import load_dataset, install_packages, plot_res_scatter, plot_hist_res, plot_qqplot
 
 if __name__ == "__main__":
     load_dotenv()
@@ -23,21 +23,9 @@ if __name__ == "__main__":
     X = ds[[c for c in ds.columns if c != "Crime"]]
     y = ds["Crime"]
 
-    model = r.r('''
-        model <- lm(Crime ~ ., data=ds)
-        model                
-    ''')
-
-    resid = r.r(f'''
-        fit <- fitted(model)
-        res <- resid(model)
-        png("{PATH}/img/res_plot.png", width=800, height=600)
-        plot(fit,res)
-        dev.off()
-
-    ''')
 
     breusch_pagan = r.r('''
+        model <- lm(Crime ~ ., data = ds)
         res2 <- resid(model)^2
         fit2 <- lm(res2 ~ ., data=ds)
         fit2
@@ -61,6 +49,12 @@ if __name__ == "__main__":
         wt_estimate <- lm(Crime_wt ~ fit1_r + {"+".join([c+"_wt" for c in ds.columns if c != "Crime" and c != "Time" and c!= "Ed" and c !="Wealth"])} -1)
         wt_estimate
     """)
+
+    plot_res_scatter(PATH,"wt_estimate")
+    plot_hist_res(PATH,"wt_estimate")
+    plot_qqplot(PATH,"wt_estimate")
+
+    
     
     print("Summary BP: \n",r.r("summary(fit2)"))
     print("Summary WT: \n",r.r("summary(model_white)"))

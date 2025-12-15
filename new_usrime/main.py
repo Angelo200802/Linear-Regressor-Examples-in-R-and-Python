@@ -73,6 +73,52 @@ def load_dataset(PATH, DATASET_NAME) -> pd.DataFrame:
 
     return ds
 
+def plot_hist_y(path, y = "Crime"):
+    r.r(f'''
+        png("{path}/img/histogram_{y}.png", width=800, height=600)
+        hist({y}, main="Histogram of {y}", xlab="{y}")
+        dev.off()
+    ''')
+
+def plot_confusion_matrix(path,ds : pd.DataFrame,y="Crime"):
+    r.r(f'''
+        library(DAAG)
+        library(car)
+        png("{path}/img/scatterplot_matrix_{y}.png", width=800, height=600)
+        scatterplotMatrix(~{"+".join(ds.columns.tolist())}, col="black",
+            pch=20, regLine = list(method=lm, lty=1, lwd=2, col="chartreuse3"),
+            smooth=FALSE,
+            diagonal=list(method ="histogram", breaks="FD"),
+            main="Matrice di dispersione con rette di regressione",
+            data=ds
+        )
+        dev.off()''')
+    
+def plot_hist_res(path,model):
+    r.r(f'''
+        residuals <- resid({model})
+        png("{path}/img/{model}_residuals.png", width=800, height=600)
+        hist(residuals, main="Histogram of Residuals for {model}", xlab="Residuals")
+        curve(dnorm(x),add=T)
+    ''')
+
+def plot_qqplot(path,model):
+    r.r(f"""
+        residuals <- resid({model})
+        png("{path}/img/{model}_qqplot_.png", width=800, height=600)
+        qqnorm(residuals); qqline(residuals)
+        dev.off()
+    """)
+
+def plot_res_scatter(path,model):
+    r.r(f"""
+        fit <- fitted({model})
+        res <- resid({model})
+        png("{path}/img/res_{model}_scatter.png", width=800, height=600)
+        plot(fit,res)
+        dev.off()
+    """)
+
 if __name__ == "__main__":
     load_dotenv()
     PATH = os.getenv("DATASET_PATH")
@@ -96,7 +142,7 @@ if __name__ == "__main__":
 
     print(f"Matrix W:\n{W}")  
 
-    r.r(f'png("{PATH}/img/histograms_crime.png", width=800, height=600); hist(Crime, main="Histogram of Crime", xlab="Crime"); dev.off()')
+    plot_hist_y(PATH)
 
     print("Variance and CoVariance Matrix:\n",
           r.r('''
@@ -110,60 +156,29 @@ if __name__ == "__main__":
         cor_matrix
     '''))
 
-    r.r(f'''
-        library(DAAG)
-        library(car)
-        png("{PATH}/img/scatterplot_matrix_crime.png", width=800, height=600)
-        scatterplotMatrix(~{"+".join(ds.columns.tolist())}, col="black",
-            pch=20, regLine = list(method=lm, lty=1, lwd=2, col="chartreuse3"),
-            smooth=FALSE,
-            diagonal=list(method ="histogram", breaks="FD"),
-            main="Matrice di dispersione con rette di regressione",
-            data=ds
-        )
-        dev.off()''')
+    plot_confusion_matrix(PATH,ds)
 
     m = r.r(
         f'''
             model_final <- lm(Crime ~ U2 + M + Po2 + LF , data = ds)
-
-            residuals <- resid(model_final)
-            png("{PATH}/img/m_residuals.png", width=800, height=600)
-            hist(residuals, main="Histogram of Residuals for Model with break", xlab="Residuals")
-            curve(dnorm(x),add=T)
-
-            png("{PATH}/img/m_qqplot.png", width=800, height=600)
-            qqnorm(residuals); qqline(residuals)
-            dev.off()
-
             model_final
         '''
     )
 
-    residuals = r.r(f'''
-        model <- lm(Crime ~ ., data=ds)
-        res <- resid(model)
-        png("{PATH}/img/res_plot.png", width=800, height=600)
-        plot(residuals, main="Residuals Plot", xlab="Residuals")
-        dev.off()                
-    ''')
+    plot_hist_res(PATH,"model_final")
+    plot_qqplot(PATH,"model_final")
+    plot_res_scatter(PATH,"model_final")
 
     m_complete = r.r(
         f'''
             model_complete <- lm(Crime ~ ., data = ds)
-            
-            residuals <- resid(model_complete)
-            png("{PATH}/img/m_full_residuals.png", width=800, height=600)
-            hist(residuals, main="Histogram of Residuals for Model with break", xlab="Residuals")
-            curve(dnorm(x),add=T)
-
-            png("{PATH}/img/m_full_qqplot.png", width=800, height=600)
-            qqnorm(residuals); qqline(residuals)
-            dev.off()
-
             model_complete
         '''
     )
+
+    plot_hist_res(PATH,"model_complete")
+    plot_qqplot(PATH,"model_complete")
+    plot_res_scatter(PATH,"model_complete")
 
     det_complete = r.r(''' 
         X <- model.matrix(model_complete)
