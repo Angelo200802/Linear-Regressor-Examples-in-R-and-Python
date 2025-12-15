@@ -122,7 +122,7 @@ def plot_res_scatter(path,model):
 if __name__ == "__main__":
     load_dotenv()
     PATH = os.getenv("DATASET_PATH")
-    DATASET_NAME = "4_New_uscrime_2.txt"
+    DATASET_NAME = os.getenv("DATASET_NAME")
 
     ds = load_dataset(PATH,DATASET_NAME)
     install_packages(["DAAG","olsrr","car"])

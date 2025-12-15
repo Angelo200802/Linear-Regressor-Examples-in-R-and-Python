@@ -6,7 +6,7 @@ from main import load_dataset, install_packages, plot_res_scatter, plot_hist_res
 if __name__ == "__main__":
     load_dotenv()
     PATH = os.getenv("DATASET_PATH")
-    DATASET_NAME = "4_New_uscrime_2.txt"
+    DATASET_NAME = os.getenv("DATASET_NAME")
 
     install_packages(["glmnet"])
     
@@ -44,6 +44,13 @@ if __name__ == "__main__":
             {c}_wt <- {c}/fitted(model)
         ''')
 
+
+    wt_model_i = r.r(f"""
+        fit1_r <- 1/fitted(model)
+        wt_estimate_1 <- lm(Crime_wt ~ fit1_r + {"+".join([c+"_wt" for c in ds.columns if c != "Crime"])} -1)
+        wt_estimate_1
+    """)
+
     wt_model = r.r(f"""
         fit1_r <- 1/fitted(model)
         wt_estimate <- lm(Crime_wt ~ fit1_r + {"+".join([c+"_wt" for c in ds.columns if c != "Crime" and c != "Time" and c!= "Ed" and c !="Wealth"])} -1)
@@ -54,8 +61,8 @@ if __name__ == "__main__":
     plot_hist_res(PATH,"wt_estimate")
     plot_qqplot(PATH,"wt_estimate")
 
-    
-    
+
     print("Summary BP: \n",r.r("summary(fit2)"))
     print("Summary WT: \n",r.r("summary(model_white)"))
+    print("Summary WT Initial Estimation: \n",r.r("summary(wt_estimate_1)"))
     print("Summary WT Estimation: \n",r.r("summary(wt_estimate)"))

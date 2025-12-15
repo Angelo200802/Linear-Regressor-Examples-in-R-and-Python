@@ -6,7 +6,7 @@ from main import load_dataset, install_packages
 if __name__ == "__main__":
     load_dotenv()
     PATH = os.getenv("DATASET_PATH")
-    DATASET_NAME = "4_New_uscrime_2.txt"
+    DATASET_NAME = os.getenv("DATASET_NAME")
 
     install_packages(["glmnet"])
     
