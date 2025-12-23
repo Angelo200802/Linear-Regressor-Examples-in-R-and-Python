@@ -3,6 +3,22 @@ import os
 import rpy2.robjects as r
 from main import load_dataset, install_packages, plot_res_scatter, plot_hist_res, plot_qqplot
 
+def location_plot(path,model):
+    r.r(f'''
+        sqrt_abs_resid <- sqrt(abs(resid({model})))
+        ols_fitted <- fitted({model})
+
+        png("{path}/img/{model}_location_plot.png", width=800, height=600)
+        plot(
+            ols_fitted,
+            sqrt_abs_resid,
+            xlab = "y_i",
+            ylab = "sqrt(eps_i)
+        )
+        abline(h=0,col="red")
+        dev.off()
+    ''')
+
 if __name__ == "__main__":
     load_dotenv()
     PATH = os.getenv("DATASET_PATH")
@@ -30,6 +46,8 @@ if __name__ == "__main__":
         fit2 <- lm(res2 ~ ., data=ds)
         fit2
     ''')
+
+    #location_plot(PATH,"model")
 
     white_test = r.r('''
         fit1 <- fitted(model)
